@@ -1,0 +1,29 @@
+{
+  "name": "zk-citizen-contracts",
+  "version": "1.0.0",
+  "description": "Mina zkApp smart contracts for ZK-Citizen platform",
+  "main": "build/src/index.js",
+  "types": "build/src/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "test": "jest",
+    "coverage": "jest --coverage",
+    "testw": "jest --watch"
+  },
+  "keywords": [
+    "mina",
+    "zkapp",
+    "o1js",
+    "zero-knowledge"
+  ],
+  "license": "MIT",
+  "dependencies": {
+    "o1js": "^1.0.0"
+  },
+  "devDependencies": {
+    "@types/jest": "^29.5.11",
+    "jest": "^29.7.0",
+    "ts-jest": "^29.1.1",
+    "typescript": "^5.3.2"
+  }
+}

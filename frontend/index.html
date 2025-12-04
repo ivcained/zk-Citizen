@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ZK-Citizen | Privacy-Preserving Identity & Census</title>
+  <link rel="stylesheet" href="styles.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="app">
+    <!-- Header -->
+    <header class="header">
+      <div class="logo">
+        <span class="logo-icon">🛡️</span>
+        <span class="logo-text">ZK-Citizen</span>
+      </div>
+      <nav class="nav">
+        <a href="#passport" class="nav-link active">zk-Passport</a>
+        <a href="#census" class="nav-link">zk-Census</a>
+        <a href="#about" class="nav-link">About</a>
+      </nav>
+      <button class="connect-btn" id="connectWallet">Connect Wallet</button>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero">
+      <div class="hero-content">
+        <h1>Privacy-Preserving Identity for Network States</h1>
+        <p>Prove who you are without revealing what you are. Built for the decentralized future.</p>
+        <div class="hero-stats">
+          <div class="stat">
+            <span class="stat-value" id="totalPassports">0</span>
+            <span class="stat-label">Passports Issued</span>
+          </div>
+          <div class="stat">
+            <span class="stat-value" id="totalCitizens">0</span>
+            <span class="stat-label">Census Participants</span>
+          </div>
+          <div class="stat">
+            <span class="stat-value">100%</span>
+            <span class="stat-label">Privacy Preserved</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <!-- zk-Passport Section -->
+      <section id="passport" class="section">
+        <h2 class="section-title">🛂 zk-Passport</h2>
+        <p class="section-desc">Create your privacy-preserving digital identity</p>
+        
+        <div class="card-grid">
+          <!-- Register Identity Card -->
+          <div class="card">
+            <h3>Register Identity</h3>
+            <form id="registerForm" class="form">
+              <div class="form-group">
+                <label>Full Name</label>
+                <input type="text" id="fullName" placeholder="Enter your full name" required>
+              </div>
+              <div class="form-group">
+                <label>Date of Birth</label>
+                <input type="date" id="dob" required>
+              </div>
+              <div class="form-group">
+                <label>Nationality</label>
+                <input type="text" id="nationality" placeholder="Enter nationality" required>
+              </div>
+              <div class="form-group">
+                <label>ID Number</label>
+                <input type="text" id="idNumber" placeholder="Passport/ID number" required>
+              </div>
+              <button type="submit" class="btn btn-primary">Create zk-Passport</button>
+            </form>
+          </div>
+
+          <!-- Prove Age Card -->
+          <div class="card">
+            <h3>Prove Age</h3>
+            <p class="card-desc">Prove you're above a certain age without revealing your birthdate</p>
+            <form id="ageProofForm" class="form">
+              <div class="form-group">
+                <label>Minimum Age</label>
+                <input type="number" id="minAge" placeholder="18" min="1" max="120" required>
+              </div>
+              <button type="submit" class="btn btn-secondary">Generate Proof</button>
+            </form>
+            <div id="ageProofResult" class="proof-result hidden"></div>
+          </div>
+
+          <!-- Prove Nationality Card -->
+          <div class="card">
+            <h3>Prove Nationality</h3>
+            <p class="card-desc">Prove your nationality without revealing passport details</p>
+            <form id="nationalityProofForm" class="form">
+              <div class="form-group">
+                <label>Target Nationality</label>
+                <input type="text" id="targetNationality" placeholder="e.g., Singapore" required>
+              </div>
+              <button type="submit" class="btn btn-secondary">Generate Proof</button>
+            </form>
+            <div id="nationalityProofResult" class="proof-result hidden"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- zk-Census Section -->
+      <section id="census" class="section">
+        <h2 class="section-title">📊 zk-Census</h2>
+        <p class="section-desc">Anonymous population measurement for Network States</p>
+        
+        <div class="card-grid">
+          <!-- Census Stats Card -->
+          <div class="card card-wide">
+            <h3>Population Dashboard</h3>
+            <div class="census-stats">
+              <div class="census-stat">
+                <span class="census-value" id="censusPopulation">0</span>
+                <span class="census-label">Total Population</span>
+              </div>
+              <div class="census-chart" id="ageChart">
+                <h4>Age Distribution</h4>
+                <div class="chart-bars">
+                  <div class="chart-bar" data-age="0-17"><span>0-17</span><div class="bar"></div></div>
+                  <div class="chart-bar" data-age="18-25"><span>18-25</span><div class="bar"></div></div>
+                  <div class="chart-bar" data-age="26-35"><span>26-35</span><div class="bar"></div></div>
+                  <div class="chart-bar" data-age="36-50"><span>36-50</span><div class="bar"></div></div>
+                  <div class="chart-bar" data-age="51-65"><span>51-65</span><div class="bar"></div></div>
+                  <div class="chart-bar" data-age="65+"><span>65+</span><div class="bar"></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Register for Census Card -->
+          <div class="card">
+            <h3>Join Census</h3>
+            <p class="card-desc">Register anonymously to be counted in the census</p>
+            <form id="censusRegisterForm" class="form">
+              <div class="form-group">
+                <label>Your Passport ID</label>
+                <input type="text" id="censusPassportId" placeholder="Enter passport ID" required>
+              </div>
+              <div class="form-group">
+                <label>Birth Year</label>
+                <input type="number" id="censusBirthYear" placeholder="1990" min="1900" max="2024" required>
+              </div>
+              <div class="form-group">
+                <label>Region</label>
+                <input type="text" id="censusRegion" placeholder="e.g., Asia-Pacific" required>
+              </div>
+              <button type="submit" class="btn btn-primary">Register Anonymously</button>
+            </form>
+          </div>
+
+          <!-- Population Proof Card -->
+          <div class="card">
+            <h3>Population Proof</h3>
+            <p class="card-desc">Prove population thresholds without revealing exact count</p>
+            <form id="populationProofForm" class="form">
+              <div class="form-group">
+                <label>Minimum Population</label>
+                <input type="number" id="minPopulation" placeholder="1000" min="1" required>
+              </div>
+              <button type="submit" class="btn btn-secondary">Generate Proof</button>
+            </form>
+            <div id="populationProofResult" class="proof-result hidden"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- About Section -->
+      <section id="about" class="section">
+        <h2 class="section-title">About ZK-Citizen</h2>
+        <div class="about-content">
+          <div class="about-card">
+            <h3>🔐 Privacy First</h3>
+            <p>Your personal data never leaves your device. Only cryptographic proofs are shared.</p>
+          </div>
+          <div class="about-card">
+            <h3>⚡ Powered by Mina</h3>
+            <p>Built on Mina Protocol's zkApps for succinct, verifiable proofs.</p>
+          </div>
+          <div class="about-card">
+            <h3>🌐 For Network States</h3>
+            <p>Designed for startup societies and digital communities.</p>
+          </div>
+          <div class="about-card">
+            <h3>🛡️ Sybil Resistant</h3>
+            <p>Nullifier-based system prevents double-counting and fake identities.</p>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+      <p>Built for Zypherpunk Hackathon 2024 | Network School Track</p>
+      <div class="footer-links">
+        <a href="https://github.com/zk-citizen" target="_blank">GitHub</a>
+        <a href="https://minaprotocol.com" target="_blank">Mina Protocol</a>
+        <a href="https://zypherpunk.xyz" target="_blank">Zypherpunk</a>
+      </div>
+    </footer>
+  </div>
+
+  <!-- Toast Notification -->
+  <div id="toast" class="toast hidden"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>
