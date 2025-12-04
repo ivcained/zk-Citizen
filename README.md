@@ -285,7 +285,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 - [Mina Protocol](https://minaprotocol.com) for o1js and zkApps
 - [Zcash](https://z.cash) for pioneering privacy technology
-- [Network School](https://networkschool.io) for the vision of Network States
+- [Network School](https://#) for the vision of Network States
 - [Zypherpunk](https://zypherpunk.xyz) for organizing this hackathon
 
 ---
@@ -293,8 +293,8 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## 📞 Contact
 
 - **Project**: [github.com/zk-citizen](https://github.com/zk-citizen)
-- **Twitter**: [@zk_citizen](https://twitter.com/zk_citizen)
-- **Discord**: [Join our server](https://discord.gg/zkcitizen)
+- **Twitter**: [coming soon](https://#)
+- **Discord**: [Coming Soon](https://#)
 
 ---
 
