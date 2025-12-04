@@ -11,9 +11,8 @@ import {
   Bool,
   UInt64,
   MerkleWitness,
-  CircuitString,
   Provable,
-} from 'o1js';
+} from "o1js";
 
 // Merkle tree height for storing passport commitments
 export class PassportMerkleWitness extends MerkleWitness(20) {}
@@ -70,7 +69,7 @@ export class MembershipProofRequest extends Struct({
 
 /**
  * ZK-Passport: Privacy-preserving identity verification
- * 
+ *
  * Features:
  * 1. Issue identity commitments without revealing data
  * 2. Prove age without revealing birthdate
@@ -81,13 +80,13 @@ export class MembershipProofRequest extends Struct({
 export class ZkPassport extends SmartContract {
   // Merkle root of all registered passport commitments
   @state(Field) passportRoot = State<Field>();
-  
+
   // Counter for total registered passports (for census)
   @state(Field) totalPassports = State<Field>();
-  
+
   // Admin public key for issuing passports
   @state(PublicKey) admin = State<PublicKey>();
-  
+
   // Nullifier set root (to prevent double-registration)
   @state(Field) nullifierRoot = State<Field>();
 
@@ -124,28 +123,25 @@ export class ZkPassport extends SmartContract {
     // Verify admin signature
     const admin = this.admin.get();
     this.admin.requireEquals(admin);
-    
+
     const identityHash = identityAttributes.hash();
     adminSignature.verify(admin, [identityHash, nullifier]).assertTrue();
 
     // Verify nullifier hasn't been used (prevent double registration)
     const nullifierRoot = this.nullifierRoot.get();
     this.nullifierRoot.requireEquals(nullifierRoot);
-    
+
     // Compute new passport commitment
-    const passportCommitment = Poseidon.hash([
-      identityHash,
-      nullifier,
-    ]);
+    const passportCommitment = Poseidon.hash([identityHash, nullifier]);
 
     // Verify and update Merkle tree
     const currentRoot = this.passportRoot.get();
     this.passportRoot.requireEquals(currentRoot);
-    
+
     // Verify the witness for empty leaf
     const emptyLeaf = Field(0);
     witness.calculateRoot(emptyLeaf).assertEquals(currentRoot);
-    
+
     // Calculate new root with passport commitment
     const newRoot = witness.calculateRoot(passportCommitment);
     this.passportRoot.set(newRoot);
@@ -158,7 +154,7 @@ export class ZkPassport extends SmartContract {
 
   /**
    * Prove age is above minimum without revealing actual birthdate
-   * 
+   *
    * @param dobYear - Year of birth (private input)
    * @param dobMonth - Month of birth (private input)
    * @param dobDay - Day of birth (private input)
@@ -183,7 +179,7 @@ export class ZkPassport extends SmartContract {
 
     // Calculate age (simplified - just year difference)
     const age = currentYear.sub(dobYear);
-    
+
     // Prove age >= minAge
     age.assertGreaterThanOrEqual(minAge);
   }
@@ -235,11 +231,10 @@ export class ZkPassport extends SmartContract {
 
   /**
    * Get total number of registered passports (for census)
+   * Note: This is a view function, call totalPassports state directly
    */
-  @method async getTotalPassports(): Promise<Field> {
-    const total = this.totalPassports.get();
-    this.totalPassports.requireEquals(total);
-    return total;
+  getTotalPassportsCount(): Field {
+    return this.totalPassports.get();
   }
 }
 
@@ -251,9 +246,27 @@ export class PassportUtils {
    * Create a commitment to a string value
    */
   static createStringCommitment(value: string, salt: Field): Field {
-    const valueField = Poseidon.hash(
-      CircuitString.fromString(value).toFields()
-    );
+    // Convert string to Field array for hashing
+    const encoder = new TextEncoder();
+    const bytes = encoder.encode(value);
+    const fields: Field[] = [];
+
+    // Process bytes in chunks of 31 (to fit in Field)
+    for (let i = 0; i < bytes.length; i += 31) {
+      let hex = "";
+      for (let j = i; j < Math.min(i + 31, bytes.length); j++) {
+        hex += bytes[j].toString(16).padStart(2, "0");
+      }
+      if (hex) {
+        fields.push(Field(BigInt("0x" + hex.padEnd(62, "0"))));
+      }
+    }
+
+    if (fields.length === 0) {
+      fields.push(Field(0));
+    }
+
+    const valueField = Poseidon.hash(fields);
     return Poseidon.hash([valueField, salt]);
   }
 
@@ -287,9 +300,26 @@ export class PassportUtils {
    * Create a nullifier from identity data (for sybil resistance)
    */
   static createNullifier(idNumber: string, secret: Field): Field {
-    const idField = Poseidon.hash(
-      CircuitString.fromString(idNumber).toFields()
-    );
+    // Convert string to Field array for hashing
+    const encoder = new TextEncoder();
+    const bytes = encoder.encode(idNumber);
+    const fields: Field[] = [];
+
+    for (let i = 0; i < bytes.length; i += 31) {
+      let hex = "";
+      for (let j = i; j < Math.min(i + 31, bytes.length); j++) {
+        hex += bytes[j].toString(16).padStart(2, "0");
+      }
+      if (hex) {
+        fields.push(Field(BigInt("0x" + hex.padEnd(62, "0"))));
+      }
+    }
+
+    if (fields.length === 0) {
+      fields.push(Field(0));
+    }
+
+    const idField = Poseidon.hash(fields);
     return Poseidon.hash([idField, secret]);
   }
 
@@ -305,7 +335,12 @@ export class PassportUtils {
   ): IdentityAttributes {
     return new IdentityAttributes({
       nameCommitment: this.createStringCommitment(name, salt),
-      dobCommitment: this.createDateCommitment(dob.year, dob.month, dob.day, salt),
+      dobCommitment: this.createDateCommitment(
+        dob.year,
+        dob.month,
+        dob.day,
+        salt
+      ),
       nationalityCommitment: this.createStringCommitment(nationality, salt),
       idCommitment: this.createStringCommitment(idNumber, salt),
       salt,

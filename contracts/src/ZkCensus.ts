@@ -14,7 +14,7 @@ import {
   MerkleMap,
   MerkleMapWitness,
   Provable,
-} from 'o1js';
+} from "o1js";
 
 // Merkle tree for census participants
 export class CensusMerkleWitness extends MerkleWitness(20) {}
@@ -99,7 +99,7 @@ export class DemographicAggregates extends Struct({
 
 /**
  * ZK-Census: Privacy-preserving population measurement
- * 
+ *
  * Features:
  * 1. Count population without revealing individual identities
  * 2. Aggregate demographics without doxxing members
@@ -110,19 +110,19 @@ export class DemographicAggregates extends Struct({
 export class ZkCensus extends SmartContract {
   // Current census participant root
   @state(Field) participantRoot = State<Field>();
-  
+
   // Total unique participants
   @state(Field) totalParticipants = State<Field>();
-  
+
   // Nullifier root (prevents double-counting)
   @state(Field) nullifierRoot = State<Field>();
-  
+
   // Latest census snapshot hash
   @state(Field) latestSnapshotHash = State<Field>();
-  
+
   // Census admin
   @state(PublicKey) admin = State<PublicKey>();
-  
+
   // Community/Network State identifier
   @state(Field) communityId = State<Field>();
 
@@ -150,10 +150,10 @@ export class ZkCensus extends SmartContract {
   ) {
     const currentCommunityId = this.communityId.get();
     this.communityId.requireEquals(currentCommunityId);
-    
+
     // Only allow setup once
     currentCommunityId.assertEquals(Field(0));
-    
+
     this.admin.set(adminPubKey);
     this.communityId.set(communityIdentifier);
   }
@@ -177,9 +177,10 @@ export class ZkCensus extends SmartContract {
     // Verify nullifier hasn't been used
     const nullifierRoot = this.nullifierRoot.get();
     this.nullifierRoot.requireEquals(nullifierRoot);
-    
+
     // Check nullifier is not in the tree (value should be 0)
-    const [computedNullifierRoot, computedKey] = nullifierWitness.computeRootAndKeyV2(Field(0));
+    const [computedNullifierRoot, computedKey] =
+      nullifierWitness.computeRootAndKeyV2(Field(0));
     computedNullifierRoot.assertEquals(nullifierRoot);
     computedKey.assertEquals(nullifier);
 
@@ -193,10 +194,10 @@ export class ZkCensus extends SmartContract {
     // Update participant tree
     const currentRoot = this.participantRoot.get();
     this.participantRoot.requireEquals(currentRoot);
-    
+
     // Verify empty slot
     participantWitness.calculateRoot(Field(0)).assertEquals(currentRoot);
-    
+
     // Add participant
     const newRoot = participantWitness.calculateRoot(participantEntry);
     this.participantRoot.set(newRoot);
@@ -222,7 +223,7 @@ export class ZkCensus extends SmartContract {
     // Verify aggregates total matches participant count
     const totalParticipants = this.totalParticipants.get();
     this.totalParticipants.requireEquals(totalParticipants);
-    
+
     aggregates.total.assertEquals(totalParticipants);
     aggregates.verifyTotal().assertTrue();
 
@@ -245,7 +246,7 @@ export class ZkCensus extends SmartContract {
       snapshot.participantRoot,
       snapshot.demographicsHash,
     ]);
-    
+
     this.latestSnapshotHash.set(snapshotHash);
     this.demographicsHash.set(aggregates.hash());
   }
@@ -254,12 +255,10 @@ export class ZkCensus extends SmartContract {
    * Prove population is above a threshold
    * Without revealing exact count
    */
-  @method async provePopulationAbove(
-    threshold: Field
-  ) {
+  @method async provePopulationAbove(threshold: Field) {
     const totalParticipants = this.totalParticipants.get();
     this.totalParticipants.requireEquals(totalParticipants);
-    
+
     totalParticipants.assertGreaterThanOrEqual(threshold);
   }
 
@@ -273,7 +272,7 @@ export class ZkCensus extends SmartContract {
   ) {
     const totalParticipants = this.totalParticipants.get();
     this.totalParticipants.requireEquals(totalParticipants);
-    
+
     totalParticipants.assertGreaterThanOrEqual(minPopulation);
     totalParticipants.assertLessThanOrEqual(maxPopulation);
   }
@@ -287,28 +286,25 @@ export class ZkCensus extends SmartContract {
   ) {
     const currentRoot = this.participantRoot.get();
     this.participantRoot.requireEquals(currentRoot);
-    
+
     witness.calculateRoot(participantEntry).assertEquals(currentRoot);
   }
 
   /**
    * Get current population count
+   * Note: This is a getter method, not a provable method
    */
-  @method async getPopulation(): Promise<Field> {
-    const total = this.totalParticipants.get();
-    this.totalParticipants.requireEquals(total);
-    return total;
+  getPopulationCount(): Field {
+    return this.totalParticipants.get();
   }
 
   /**
    * Verify demographic aggregates match stored hash
    */
-  @method async verifyDemographics(
-    aggregates: DemographicAggregates
-  ) {
+  @method async verifyDemographics(aggregates: DemographicAggregates) {
     const storedHash = this.demographicsHash.get();
     this.demographicsHash.requireEquals(storedHash);
-    
+
     aggregates.hash().assertEquals(storedHash);
     aggregates.verifyTotal().assertTrue();
   }
@@ -336,24 +332,29 @@ export class CensusUtils {
    */
   static createRegionCode(region: string): Field {
     // Hash the region string for privacy
-    const regionBytes = Buffer.from(region, 'utf-8');
-    const regionFields = regionBytes.toString('hex')
+    const regionBytes = Buffer.from(region, "utf-8");
+    const regionFields = regionBytes
+      .toString("hex")
       .match(/.{1,62}/g)
-      ?.map(hex => Field(BigInt('0x' + hex))) || [Field(0)];
+      ?.map((hex) => Field(BigInt("0x" + hex))) || [Field(0)];
     return Poseidon.hash(regionFields);
   }
 
   /**
    * Calculate join time bracket
    */
-  static getJoinTimeBracket(joinTimestamp: number, currentTimestamp: number): Field {
-    const daysAsMember = (currentTimestamp - joinTimestamp) / (24 * 60 * 60 * 1000);
-    if (daysAsMember < 30) return Field(0);      // < 1 month
-    if (daysAsMember < 90) return Field(1);      // 1-3 months
-    if (daysAsMember < 180) return Field(2);     // 3-6 months
-    if (daysAsMember < 365) return Field(3);     // 6-12 months
-    if (daysAsMember < 730) return Field(4);     // 1-2 years
-    return Field(5);                              // 2+ years
+  static getJoinTimeBracket(
+    joinTimestamp: number,
+    currentTimestamp: number
+  ): Field {
+    const daysAsMember =
+      (currentTimestamp - joinTimestamp) / (24 * 60 * 60 * 1000);
+    if (daysAsMember < 30) return Field(0); // < 1 month
+    if (daysAsMember < 90) return Field(1); // 1-3 months
+    if (daysAsMember < 180) return Field(2); // 3-6 months
+    if (daysAsMember < 365) return Field(3); // 6-12 months
+    if (daysAsMember < 730) return Field(4); // 1-2 years
+    return Field(5); // 2+ years
   }
 
   /**
